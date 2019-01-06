@@ -2,17 +2,28 @@
 import pygsheets
 import json
 import logging
+import os
 from flask import Flask, Response
+
+# get env.vars
+credentials_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+credentials = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_CONTENT")
+
+# set up logging
+log_level = logging.getLevelName(os.environ.get("LOG_LEVEL", "INFO"))
+logging.basicConfig(level=log_level, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+
+# write out service config from env var to known file
+with open(credentials_path, "wb") as out_file:
+    out_file.write(credentials.encode())
+
+# authenticate
+#gc = pygsheets.authorize(client_secret='client_secret.json')
+gc = pygsheets.authorize(client_secret=credentials_path)
+
 
 # initialize web service
 app = Flask(__name__)
-
-# FIXME: change to token authentication
-# authenticate
-gc = pygsheets.authorize(client_secret='client_secret.json')
-
-# configure logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 
 @app.route("/<spreadsheet>/<worksheet>")
